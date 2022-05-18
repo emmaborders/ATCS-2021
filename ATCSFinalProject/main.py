@@ -102,6 +102,51 @@ class ImageCompressor:
         ax.scatter(img[:, 0], img[:, 1], img[:, 2], c=img / 255.0)
         plt.show()
 
+    def change_colors_blue(self, average_colors):
+
+        for i in range(len(average_colors)):
+
+            brightness = round((average_colors[i][0] * 0.2126) + (average_colors[i][1] * 0.7152) + (average_colors[i][2] * 0.0722))
+
+            if brightness < 128:
+                blue_value = (brightness * 2)
+                average_colors[i] = [0, 0, blue_value]
+
+            else:
+                red_green_value = ((brightness - 128) * 2)
+                average_colors[i] = [red_green_value, red_green_value, 255]
+
+    def change_colors_red(self, average_colors):
+
+        for i in range(len(average_colors)):
+
+            brightness = round((average_colors[i][0] * 0.2126) + (average_colors[i][1] * 0.7152) + (average_colors[i][2] * 0.0722))
+
+            if brightness < 128:
+                red_value = (brightness * 2)
+                average_colors[i] = [red_value, 0, 0]
+
+            else:
+                green_blue_value = ((brightness - 128) * 2)
+                average_colors[i] = [255, green_blue_value, green_blue_value]
+
+    def change_colors_green(self, average_colors):
+
+        for i in range(len(average_colors)):
+
+            brightness = round((average_colors[i][0] * 0.2126) + (average_colors[i][1] * 0.7152) + (average_colors[i][2] * 0.0722))
+
+            if brightness < 128:
+                green_value = (brightness * 2)
+                average_colors[i] = [0, green_value, 0]
+
+            else:
+                red_blue_value = ((brightness - 128) * 2)
+                average_colors[i] = [red_blue_value, 255, red_blue_value]
+
+
+
+
     def change_colors(self, average_colors):
 
         used_colors = []
@@ -330,7 +375,16 @@ class ImageCompressor:
         centroids = km.cluster_centers_
         #print(centroids)
 
-        self.change_colors(centroids)
+        x = 2
+
+        if x == 1:
+            self.change_colors(centroids)
+        if x == 2:
+            self.change_colors_blue(centroids)
+        if x == 3:
+            self.change_colors_red(centroids)
+        if x == 4:
+            self.change_colors_green(centroids)
 
 
         labels = km.labels_
