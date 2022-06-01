@@ -144,7 +144,209 @@ class ImageCompressor:
                 red_blue_value = ((brightness - 128) * 2)
                 average_colors[i] = [red_blue_value, 255, red_blue_value]
 
+    def change_colors_christmas(self, average_colors):
+        used_colors = []
+        skip_rows = []
 
+        for i in range(len(average_colors)):
+
+            data = pd.read_csv("data/christmas.csv", skiprows=skip_rows)
+
+            color_red = data["red"].values
+            color_green = data["green"].values
+            color_blue = data["blue"].values
+            color = data["color"].values
+
+            colors = np.array([color_red, color_green, color_blue]).transpose()
+
+            scaler = StandardScaler().fit(colors)
+            colors = scaler.transform(colors)
+
+
+            model = KNeighborsClassifier(n_neighbors=1).fit(colors, color)
+            new_color = model.predict([average_colors[i]])
+
+
+            if new_color == 'cinnamon':
+                average_colors[i] = [201, 116, 71]
+                used_colors.append('cinnamon')
+                df = pd.read_csv("data/christmas.csv")
+                for j in range(len(df)):
+                    if df.iloc[j, 3] == 'cinnamon':
+                        skip_rows.append(j + 1)
+
+            if new_color == 'crimson':
+                average_colors[i] = [133, 13, 11]
+                used_colors.append('crimson')
+                df = pd.read_csv("data/christmas.csv")
+                for j in range(len(df)):
+                    if df.iloc[j, 3] == 'crimson':
+                        skip_rows.append(j + 1)
+
+            if new_color == 'berry':
+                average_colors[i] = [196, 18, 65]
+                used_colors.append('berry')
+                df = pd.read_csv("data/christmas.csv")
+                for j in range(len(df)):
+                    if df.iloc[j, 3] == 'berry':
+                        skip_rows.append(j + 1)
+
+            if new_color == 'mistletoe':
+                average_colors[i] = [111, 122, 77]
+                used_colors.append('mistletoe')
+                df = pd.read_csv("data/christmas.csv")
+                for j in range(len(df)):
+                    if df.iloc[j, 3] == 'mistletoe':
+                        skip_rows.append(j + 1)
+
+            if new_color == 'wreath':
+                average_colors[i] = [60, 69, 53]
+                used_colors.append('wreath')
+                df = pd.read_csv("data/christmas.csv")
+                for j in range(len(df)):
+                    if df.iloc[j, 3] == 'wreath':
+                        skip_rows.append(j + 1)
+
+            if new_color == 'rose':
+                average_colors[i] = [255, 240, 243]
+                used_colors.append('rose')
+                df = pd.read_csv("data/christmas.csv")
+                for j in range(len(df)):
+                    if df.iloc[j, 3] == 'rose':
+                        skip_rows.append(j + 1)
+
+
+    def change_colors_miami_vice(self, average_colors):
+        used_colors = []
+        skip_rows = []
+
+        for i in range(len(average_colors)):
+
+            data = pd.read_csv("data/miami_vice.csv", skiprows=skip_rows)
+
+            color_red = data["red"].values
+            color_green = data["green"].values
+            color_blue = data["blue"].values
+            color = data["color"].values
+
+            colors = np.array([color_red, color_green, color_blue]).transpose()
+
+            scaler = StandardScaler().fit(colors)
+            colors = scaler.transform(colors)
+
+            model = KNeighborsClassifier(n_neighbors=1).fit(colors, color)
+            new_color = model.predict([average_colors[i]])
+
+            if new_color == 'turquoise':
+                average_colors[i] = [85, 242, 240]
+                used_colors.append('turquoise')
+                df = pd.read_csv("data/miami_vice.csv")
+                for j in range(len(df)):
+                    if df.iloc[j, 3] == 'turquoise':
+                        skip_rows.append(j + 1)
+
+            if new_color == 'pink':
+                average_colors[i] = [255,56,219]
+                used_colors.append('pink')
+                df = pd.read_csv("data/miami_vice.csv")
+                for j in range(len(df)):
+                    if df.iloc[j, 3] == 'pink':
+                        skip_rows.append(j + 1)
+
+            if new_color == 'blueberry':
+                average_colors[i] = [56 ,106 ,255]
+                used_colors.append('blueberry')
+                df = pd.read_csv("data/miami_vice.csv")
+                for j in range(len(df)):
+                    if df.iloc[j, 3] == 'blueberry':
+                        skip_rows.append(j + 1)
+
+            if new_color == 'navy':
+                average_colors[i] = [38, 18, 138]
+                used_colors.append('navy')
+                df = pd.read_csv("data/miami_vice.csv")
+                for j in range(len(df)):
+                    if df.iloc[j, 3] == 'navy':
+                        skip_rows.append(j + 1)
+
+            if new_color == 'violet':
+                average_colors[i] = [184, 102, 250]
+                used_colors.append('violet')
+                df = pd.read_csv("data/miami_vice.csv")
+                for j in range(len(df)):
+                    if df.iloc[j, 3] == 'violet':
+                        skip_rows.append(j + 1)
+
+
+    def change_colors_sherbert(self, average_colors):
+        used_colors = []
+        skip_rows = []
+
+        for i in range(len(average_colors)):
+            data = pd.read_csv("data/sherbet.csv", skiprows=skip_rows)
+
+            color_red = data["red"].values
+            color_green = data["green"].values
+            color_blue = data["blue"].values
+            color = data["color"].values
+
+            colors = np.array([color_red, color_green, color_blue]).transpose()
+
+            color_options = np.unique(data["color"])
+
+            scaler = StandardScaler().fit(colors)
+            colors = scaler.transform(colors)
+
+            model = KNeighborsClassifier(n_neighbors=1).fit(colors, color_options)
+            new_color = model.predict([average_colors[i]])
+
+            if new_color == 'orange':
+                average_colors[i] = [255, 145, 10]
+                used_colors.append('orange')
+                df = pd.read_csv("data/sherbet.csv")
+                for j in range(len(df)):
+                    if df.iloc[j, 3] == 'orange':
+                        skip_rows.append(j + 1)
+
+            if new_color == 'sunshine':
+                average_colors[i] = [255, 189, 46]
+                used_colors.append('sunshine')
+                df = pd.read_csv("data/sherbet.csv")
+                for j in range(len(df)):
+                    if df.iloc[j, 3] == 'sunshine':
+                        skip_rows.append(j + 1)
+
+            if new_color == 'peach':
+                average_colors[i] = [255, 216, 186]
+                used_colors.append('peach')
+                df = pd.read_csv("data/sherbet.csv")
+                for j in range(len(df)):
+                    if df.iloc[j, 3] == 'peach':
+                        skip_rows.append(j + 1)
+
+            if new_color == 'flamingo':
+                average_colors[i] = [255, 169, 204]
+                used_colors.append('flamingo')
+                df = pd.read_csv("data/sherbet.csv")
+                for j in range(len(df)):
+                    if df.iloc[j, 3] == 'flamingo':
+                        skip_rows.append(j + 1)
+
+            if new_color == 'fuchsia':
+                average_colors[i] = [255, 92, 159]
+                used_colors.append('fuchsia')
+                df = pd.read_csv("data/sherbet.csv")
+                for j in range(len(df)):
+                    if df.iloc[j, 3] == 'fuchsia':
+                        skip_rows.append(j + 1)
+
+            if new_color == 'yellow':
+                average_colors[i] = [255, 234, 94]
+                used_colors.append('yellow')
+                df = pd.read_csv("data/sherbet.csv")
+                for j in range(len(df)):
+                    if df.iloc[j, 3] == 'yellow':
+                        skip_rows.append(j + 1)
 
 
     def change_colors(self, average_colors):
@@ -154,7 +356,6 @@ class ImageCompressor:
 
         for i in range(len(average_colors)):
 
-            print(skip_rows)
             data = pd.read_csv("data/rgb.csv", skiprows=skip_rows)
 
 
@@ -186,8 +387,7 @@ class ImageCompressor:
                 df = pd.read_csv("data/rgb.csv")
                 for j in range(len(df)):
                     if df.iloc[j, 3] == 'raspberry':
-                        skip_rows.append(j+1)
-
+                        skip_rows.append(j + 1)
 
             if new_color == 'cherry':
                 average_colors[i] = [250, 110, 110]
@@ -195,8 +395,7 @@ class ImageCompressor:
                 df = pd.read_csv("data/rgb.csv")
                 for j in range(len(df)):
                     if df.iloc[j, 3] == 'cherry':
-                        skip_rows.append(j+1)
-
+                        skip_rows.append(j + 1)
 
             if new_color == 'watermelon':
                 average_colors[i] = [255, 133, 175]
@@ -204,8 +403,7 @@ class ImageCompressor:
                 df = pd.read_csv("data/rgb.csv")
                 for j in range(len(df)):
                     if df.iloc[j, 3] == 'watermelon':
-                        skip_rows.append(j+1)
-
+                        skip_rows.append(j + 1)
 
             if new_color == 'bubblegum':
                 average_colors[i] = [255, 194, 215]
@@ -213,8 +411,7 @@ class ImageCompressor:
                 df = pd.read_csv("data/rgb.csv")
                 for j in range(len(df)):
                     if df.iloc[j, 3] == 'bubblegum':
-                        skip_rows.append(j+1)
-
+                        skip_rows.append(j + 1)
 
             if new_color == 'peach':
                 average_colors[i] = [255, 182, 173]
@@ -222,8 +419,7 @@ class ImageCompressor:
                 df = pd.read_csv("data/rgb.csv")
                 for j in range(len(df)):
                     if df.iloc[j, 3] == 'peach':
-                        skip_rows.append(j+1)
-
+                        skip_rows.append(j + 1)
 
             if new_color == 'tangerine':
                 average_colors[i] = [255, 175, 56]
@@ -231,7 +427,7 @@ class ImageCompressor:
                 df = pd.read_csv("data/rgb.csv")
                 for j in range(len(df)):
                     if df.iloc[j, 3] == 'tangerine':
-                        skip_rows.append(j+1)
+                        skip_rows.append(j + 1)
 
 
             if new_color == 'gold':
@@ -352,7 +548,7 @@ class ImageCompressor:
 
 
 
-        print(used_colors)
+
 
 
 
@@ -369,13 +565,12 @@ class ImageCompressor:
 
         image1D = self.convert_to_1D(img)
 
-        k = 15
+        k = 8
 
         km = KMeans(n_clusters=k).fit(image1D)
         centroids = km.cluster_centers_
-        #print(centroids)
 
-        x = 2
+        x = 1
 
         if x == 1:
             self.change_colors(centroids)
@@ -385,6 +580,14 @@ class ImageCompressor:
             self.change_colors_red(centroids)
         if x == 4:
             self.change_colors_green(centroids)
+        if x == 5:
+            self.change_colors_christmas(centroids)
+        if x == 6:
+            self.change_colors_miami_vice(centroids)
+        if x == 7:
+            self.change_colors_sherbert(centroids)
+
+
 
 
         labels = km.labels_
@@ -402,8 +605,8 @@ class ImageCompressor:
 
 if __name__ == '__main__':
     imageComp = ImageCompressor()
-    image = imageComp.load_image("/Users/emmaborders/Desktop/tiger.jpeg")
+    image = imageComp.load_image("/Users/emmaborders/Desktop/taylor.jpg")
 
     newImage = imageComp.compress_image(image)
-    imageComp.plot_image_comparisons( imageComp.load_image("/Users/emmaborders/Desktop/tiger.jpeg"), newImage)
+    imageComp.plot_image_comparisons( imageComp.load_image("/Users/emmaborders/Desktop/taylor.jpg"), newImage)
 
