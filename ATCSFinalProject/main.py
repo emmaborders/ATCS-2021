@@ -1,568 +1,514 @@
 import numpy as np  # storing and manipulating data
-import pandas
 import pandas as pd
 import matplotlib.pyplot as plt  # plotting
 from sklearn.cluster import KMeans  # ML
 from sklearn.linear_model import LogisticRegression
-from sklearn.utils import shuffle  # ML
-from tkinter import *
-from tkinter import ttk
-import PIL  # opening image and converting back from array
 import matplotlib.image as mpimg
 from sklearn.neighbors import KNeighborsClassifier
-from sklearn.preprocessing import LabelEncoder, StandardScaler
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay, accuracy_score
-
+from sklearn.preprocessing import StandardScaler
+import os.path
 
 
 class ImageCompressor:
     def __init__(self):
-        self.img_size = None
+        self.imgSize = None
 
-class ImageCompressor:
-
-
-    def __init__(self):
-        self.img_size = None
-
-    def load_image(self, filepath):
+    def loadImage(self, filepath):
         """
-        Loads the image from the path as a 2D List (Height x Width) of [R,G,B] values.
-        :param filepath: Path to the original image
-        :return: 2D List of [R, G, B] values
+        Uses the file path to load the image.
+        Stores it as a 2D array of red-green-blue values.
+        This function takes in a file path and returns
+        a 2D list of [red, blue, green] values.
         """
-        # Read the image
+        # Reads image
         img = mpimg.imread(filepath)
-        self.img_size = img.shape
-
+        self.imgSize = img.shape
         return img
 
-    def save_image(self, img, filepath):
+
+    def saveImage(self, img, filepath):
         """
-        Saves the provided image to the file specified by filepath
-        :param img: 2D List of [R, G, B] values that represent the image
-        :param filepath: Location to save the file
+        Saves the image (currently stored as a 2D list) to the file
+        path given as a parameter.
+        Takes in a 2D array and a file path.
         """
         mpimg.imsave(filepath, img)
 
-    def convert_to_1D(self, img):
+    def convertTo1D(self, img):
         """
-        Converts a 2D List of [R,G,B] values into a 1D List of [R,G,B] values
-        :param img: 2D List of [R,G,B] values that represent an image
-        :return: 1D List of [R,G,B] values that represent an image
+        Converts the 2D array of [Red,Green,Blue] values to a 1D array of [Red,Green,Blue] values.
         """
-        return img.reshape(self.img_size[0] * self.img_size[1], self.img_size[2])
+        return img.reshape(self.imgSize[0] * self.imgSize[1], self.imgSize[2])
 
-    def convert_to_2D(self, img):
+    def convertTo2D(self, img):
         """
-        Converts a 1D List of pixels where each pixel is represented by [R,G,B] into
-        a 2D List of dimensions height x width where each entry is a [R,G,B] pixel
-        :param img: 1D List of [R,G,B] values for each pixel
-        :return: 2D list of dimensions height x width where each entry is an [R,G,B] pixel
+        Converts the 1D array of [Red,Green,Blue] values to a 2D array of [Red,Green,Blue] values.
+        Takes in a 1D array representing an image and returns it as a 2D List.
         """
         img = np.clip(img.astype('uint8'), 0, 255)
-        img = img.reshape(self.img_size[0], self.img_size[1], self.img_size[2])
+        img = img.reshape(self.imgSize[0], self.imgSize[1], self.imgSize[2])
         return img
 
-    def plot_image_comparisons(self, original, compressed):
+    def plotImageComparisons(self, original, compressed):
         """
-        Plots the original and compressed image on the same figure
-        :param original: 2D List of [R,G,B] values representing the original image
-        :param compressed: 2D List of [R,G,B] values representing the compressed image
+        Plots two images, each represented by a 2D array, on the same figure.
+        One image is the original, the other is the edited image.
         """
         fig, ax = plt.subplots(1, 2)
 
-        # Plot the original image
+        # original image
         ax[0].imshow(original)
         ax[0].set_title('Original Image')
 
-        # Plot the compressed image
+        # edited image
         ax[1].imshow(compressed)
         ax[1].set_title('Compressed Image')
 
-        # Turn the axes off and show the figure
+        # removes axes and "draws" the figure
         for ax in fig.axes:
             ax.axis('off')
         plt.tight_layout()
         plt.show()
 
-    def plot_image_colors(self, img):
+    def plotImageColors(self, img):
         """
-        Plots the colors in an image on a 3D scatter plot
-        :param img: A 2D List of pixels where each pixel is represented by [R,G,B]
+        Plots the pixels on a scatter plot.
+        Uses a 3D plot with axes representing red, green and blue.
+        Creates the scatter plot using the 2D array passed into the function.
         """
         fig = plt.figure()
-        ax = fig.add_subplot(111, projection='3d')
+        ax = fig.addSubplot(111, projection='3d')
 
-        ax.set_xlabel("Red")
-        ax.set_ylabel("Green")
-        ax.set_zlabel("Blue")
+        ax.setXLabel("Red")
+        ax.setYLabel("Green")
+        ax.setZLabel("Blue")
 
         ax.scatter(img[:, 0], img[:, 1], img[:, 2], c=img / 255.0)
         plt.show()
 
-    def change_colors_blue(self, average_colors):
+    def changeColorsBlue(self, averageColors):
+        """
+        Reassigns the average colors (parameter) to their corresponding shades of blue.
+        This is the first of 7 functions that takes in an array of red-blue-green values
+        and returns the array once its values have been changed.
+        """
 
-        for i in range(len(average_colors)):
+        # for each group of pixels that have been assigned to their average color
+        for i in range(len(averageColors)):
 
-            brightness = round((average_colors[i][0] * 0.2126) + (average_colors[i][1] * 0.7152) + (average_colors[i][2] * 0.0722))
+            # assigns a number to the rgb value to represent it's "brightness"
+            # Someone created a way of calculating a color's relative lightness/darkness
+            # https://stackoverflow.com/questions/596216/formula-to-determine-perceived-brightness-of-rgb-color
+            brightness = round((averageColors[i][0] * 0.2126) + (averageColors[i][1] * 0.7152) + (averageColors[i][2] * 0.0722))
 
-            if brightness < 128:
-                blue_value = (brightness * 2)
-                average_colors[i] = [0, 0, blue_value]
-
-            else:
-                red_green_value = ((brightness - 128) * 2)
-                average_colors[i] = [red_green_value, red_green_value, 255]
-
-    def change_colors_red(self, average_colors):
-
-        for i in range(len(average_colors)):
-
-            brightness = round((average_colors[i][0] * 0.2126) + (average_colors[i][1] * 0.7152) + (average_colors[i][2] * 0.0722))
-
-            if brightness < 128:
-                red_value = (brightness * 2)
-                average_colors[i] = [red_value, 0, 0]
-
-            else:
-                green_blue_value = ((brightness - 128) * 2)
-                average_colors[i] = [255, green_blue_value, green_blue_value]
-
-    def change_colors_green(self, average_colors):
-
-        for i in range(len(average_colors)):
-
-            brightness = round((average_colors[i][0] * 0.2126) + (average_colors[i][1] * 0.7152) + (average_colors[i][2] * 0.0722))
+            # two types of blue shades
+            # dark blues: red and green are zero, blue varies
+            # light blues: red and green values vary but remain equal to each other, blue is constant at 255
+            # if else statement determines if the new color will be light or dark blue and assigns it to a shade of blue accordingly
 
             if brightness < 128:
-                green_value = (brightness * 2)
-                average_colors[i] = [0, green_value, 0]
+                blueValue = (brightness * 2)
+                averageColors[i] = [0, 0, blueValue]
 
             else:
-                red_blue_value = ((brightness - 128) * 2)
-                average_colors[i] = [red_blue_value, 255, red_blue_value]
+                redGreenValue = ((brightness - 128) * 2)
+                averageColors[i] = [redGreenValue, redGreenValue, 255]
 
-    def change_colors_christmas(self, average_colors):
-        used_colors = []
-        skip_rows = []
+    def changeColorsRed(self, averageColors):
+        """
+        Reassigns the average colors (parameter) to their corresponding shades of red.
+        works the same was as the "changeColorsBlue" function above.
+        """
+        for i in range(len(averageColors)):
 
-        for i in range(len(average_colors)):
+            brightness = round((averageColors[i][0] * 0.2126) + (averageColors[i][1] * 0.7152) + (averageColors[i][2] * 0.0722))
 
-            data = pd.read_csv("data/christmas.csv", skiprows=skip_rows)
+            if brightness < 128:
+                redValue = (brightness * 2)
+                averageColors[i] = [redValue, 0, 0]
 
-            color_red = data["red"].values
-            color_green = data["green"].values
-            color_blue = data["blue"].values
+            else:
+                greenBlueValue = ((brightness - 128) * 2)
+                averageColors[i] = [255, greenBlueValue, greenBlueValue]
+
+    def changeColorsGreen(self, averageColors):
+        """
+        Reassigns the average colors (parameter) to their corresponding shades of green.
+        works the same was as the "changeColorsBlue" and "changeColorRed" functions above.
+        """
+        for i in range(len(averageColors)):
+
+            brightness = round((averageColors[i][0] * 0.2126) + (averageColors[i][1] * 0.7152) + (averageColors[i][2] * 0.0722))
+
+            if brightness < 128:
+                greenValue = (brightness * 2)
+                averageColors[i] = [0, greenValue, 0]
+
+            else:
+                redBlueValue = ((brightness - 128) * 2)
+                averageColors[i] = [redBlueValue, 255, redBlueValue]
+
+    def changeColorsChristmas(self, averageColors):
+        """
+        Reassigns each of the average colors to a corresponding christmas themed color.
+        Uses KNN to pick the closest color.
+        reads in a csv of the six color options.
+        """
+
+        # this variable ensures that each color will only be used once
+        # that way the final image uses each of the christmas colors
+        skipRows = []
+
+        # for each value in averageColors
+        for i in range(len(averageColors)):
+
+            # reads csv excluding the rows of colors that have already been used
+            data = pd.read_csv("data/christmas.csv", skiprows=skipRows)
+
+            colorRed = data["red"].values
+            colorGreen = data["green"].values
+            colorBlue = data["blue"].values
             color = data["color"].values
 
-            colors = np.array([color_red, color_green, color_blue]).transpose()
+            # stores the red-blue-green values from the csv into a 2D array
+            colors = np.array([colorRed, colorGreen, colorBlue]).transpose()
 
+            # standardizes data
             scaler = StandardScaler().fit(colors)
             colors = scaler.transform(colors)
 
+            # creates knn model with a nearest neighbor of 1 to pick "newColor"
+            model = KNeighborsClassifier(n_neighbors=1).fit(colors, color)
+            newColor = model.predict([averageColors[i]])
+
+            # if-statements reassign the average color at index i to the rgb of "newColor"
+            # and add the row of "newColor" to skipRows
+            if newColor == 'cinnamon':
+                averageColors[i] = [201, 116, 71]
+                skipRows.append(1)
+
+            if newColor == 'crimson':
+                averageColors[i] = [133, 13, 11]
+                skipRows.append(2)
+
+            if newColor == 'berry':
+                averageColors[i] = [196, 18, 65]
+                skipRows.append(3)
+
+            if newColor == 'mistletoe':
+                averageColors[i] = [111, 122, 77]
+                skipRows.append(4)
+
+            if newColor == 'wreath':
+                averageColors[i] = [60, 69, 53]
+                skipRows.append(5)
+
+            if newColor == 'rose':
+                averageColors[i] = [255, 240, 243]
+                skipRows.append(6)
+
+
+    def changeColorsMiamiVice(self, averageColors):
+        """
+        Reassigns each of the average colors to a corresponding miami vice themed color.
+        identical to the changeColorsChristmas function but for a different color palette.
+        """
+
+        skipRows = []
+
+        for i in range(len(averageColors)):
+
+            data = pd.read_csv("data/miamiVice.csv", skiprows=skipRows)
+
+            colorRed = data["red"].values
+            colorGreen = data["green"].values
+            colorBlue = data["blue"].values
+            color = data["color"].values
+
+            colors = np.array([colorRed, colorGreen, colorBlue]).transpose()
+
+            scaler = StandardScaler().fit(colors)
+            colors = scaler.transform(colors)
 
             model = KNeighborsClassifier(n_neighbors=1).fit(colors, color)
-            new_color = model.predict([average_colors[i]])
+            newColor = model.predict([averageColors[i]])
+
+            if newColor == 'turquoise':
+                averageColors[i] = [85, 242, 240]
+                skipRows.append(1)
+
+            if newColor == 'pink':
+                averageColors[i] = [255,56,219]
+                skipRows.append(2)
+
+            if newColor == 'blueberry':
+                averageColors[i] = [56 ,106 ,255]
+                skipRows.append(3)
+
+            if newColor == 'navy':
+                averageColors[i] = [38, 18, 138]
+                skipRows.append(4)
+
+            if newColor == 'violet':
+                averageColors[i] = [184, 102, 250]
+                skipRows.append(5)
 
 
-            if new_color == 'cinnamon':
-                average_colors[i] = [201, 116, 71]
-                used_colors.append('cinnamon')
-                df = pd.read_csv("data/christmas.csv")
-                for j in range(len(df)):
-                    if df.iloc[j, 3] == 'cinnamon':
-                        skip_rows.append(j + 1)
+    def changeColorsSherbet(self, averageColors):
+        """
+        Reassigns each of the average colors to a corresponding sherbet themed color.
+        identical to the changeColorsChristmas function but for a different color palette.
+        """
 
-            if new_color == 'crimson':
-                average_colors[i] = [133, 13, 11]
-                used_colors.append('crimson')
-                df = pd.read_csv("data/christmas.csv")
-                for j in range(len(df)):
-                    if df.iloc[j, 3] == 'crimson':
-                        skip_rows.append(j + 1)
+        skipRows = []
 
-            if new_color == 'berry':
-                average_colors[i] = [196, 18, 65]
-                used_colors.append('berry')
-                df = pd.read_csv("data/christmas.csv")
-                for j in range(len(df)):
-                    if df.iloc[j, 3] == 'berry':
-                        skip_rows.append(j + 1)
+        for i in range(len(averageColors)):
+            data = pd.read_csv("data/sherbet.csv", skiprows=skipRows)
 
-            if new_color == 'mistletoe':
-                average_colors[i] = [111, 122, 77]
-                used_colors.append('mistletoe')
-                df = pd.read_csv("data/christmas.csv")
-                for j in range(len(df)):
-                    if df.iloc[j, 3] == 'mistletoe':
-                        skip_rows.append(j + 1)
-
-            if new_color == 'wreath':
-                average_colors[i] = [60, 69, 53]
-                used_colors.append('wreath')
-                df = pd.read_csv("data/christmas.csv")
-                for j in range(len(df)):
-                    if df.iloc[j, 3] == 'wreath':
-                        skip_rows.append(j + 1)
-
-            if new_color == 'rose':
-                average_colors[i] = [255, 240, 243]
-                used_colors.append('rose')
-                df = pd.read_csv("data/christmas.csv")
-                for j in range(len(df)):
-                    if df.iloc[j, 3] == 'rose':
-                        skip_rows.append(j + 1)
-
-
-    def change_colors_miami_vice(self, average_colors):
-        used_colors = []
-        skip_rows = []
-
-        for i in range(len(average_colors)):
-
-            data = pd.read_csv("data/miami_vice.csv", skiprows=skip_rows)
-
-            color_red = data["red"].values
-            color_green = data["green"].values
-            color_blue = data["blue"].values
+            colorRed = data["red"].values
+            colorGreen = data["green"].values
+            colorBlue = data["blue"].values
             color = data["color"].values
 
-            colors = np.array([color_red, color_green, color_blue]).transpose()
+            colors = np.array([colorRed, colorGreen, colorBlue]).transpose()
 
             scaler = StandardScaler().fit(colors)
             colors = scaler.transform(colors)
 
             model = KNeighborsClassifier(n_neighbors=1).fit(colors, color)
-            new_color = model.predict([average_colors[i]])
+            newColor = model.predict([averageColors[i]])
 
-            if new_color == 'turquoise':
-                average_colors[i] = [85, 242, 240]
-                used_colors.append('turquoise')
-                df = pd.read_csv("data/miami_vice.csv")
-                for j in range(len(df)):
-                    if df.iloc[j, 3] == 'turquoise':
-                        skip_rows.append(j + 1)
+            if newColor == 'orange':
+                averageColors[i] = [255, 145, 10]
+                skipRows.append(1)
 
-            if new_color == 'pink':
-                average_colors[i] = [255,56,219]
-                used_colors.append('pink')
-                df = pd.read_csv("data/miami_vice.csv")
-                for j in range(len(df)):
-                    if df.iloc[j, 3] == 'pink':
-                        skip_rows.append(j + 1)
+            if newColor == 'sunshine':
+                averageColors[i] = [255, 189, 46]
+                skipRows.append(2)
 
-            if new_color == 'blueberry':
-                average_colors[i] = [56 ,106 ,255]
-                used_colors.append('blueberry')
-                df = pd.read_csv("data/miami_vice.csv")
-                for j in range(len(df)):
-                    if df.iloc[j, 3] == 'blueberry':
-                        skip_rows.append(j + 1)
+            if newColor == 'peach':
+                averageColors[i] = [255, 216, 186]
+                skipRows.append(3)
 
-            if new_color == 'navy':
-                average_colors[i] = [38, 18, 138]
-                used_colors.append('navy')
-                df = pd.read_csv("data/miami_vice.csv")
-                for j in range(len(df)):
-                    if df.iloc[j, 3] == 'navy':
-                        skip_rows.append(j + 1)
+            if newColor == 'flamingo':
+                averageColors[i] = [255, 169, 204]
+                skipRows.append(4)
 
-            if new_color == 'violet':
-                average_colors[i] = [184, 102, 250]
-                used_colors.append('violet')
-                df = pd.read_csv("data/miami_vice.csv")
-                for j in range(len(df)):
-                    if df.iloc[j, 3] == 'violet':
-                        skip_rows.append(j + 1)
+            if newColor == 'fuchsia':
+                averageColors[i] = [255, 92, 159]
+                skipRows.append(5)
+
+            if newColor == 'yellow':
+                averageColors[i] = [255, 234, 94]
+                skipRows.append(6)
 
 
-    def change_colors_sherbert(self, average_colors):
-        used_colors = []
-        skip_rows = []
+    def changeColors(self, averageColors):
+        """
+        Reassigns each of the average colors to a corresponding color from the "rgb" csv.
+        Instead of using KNN, reads in a csv with lots of data and graphs the rbg values
+        from the csv, using said values as training data.
 
-        for i in range(len(average_colors)):
-            data = pd.read_csv("data/sherbet.csv", skiprows=skip_rows)
+        """
 
-            color_red = data["red"].values
-            color_green = data["green"].values
-            color_blue = data["blue"].values
-            color = data["color"].values
+        # "usedColors" is needed to determine which rows to skip
+        usedColors = []
+        skipRows = []
 
-            colors = np.array([color_red, color_green, color_blue]).transpose()
+        for i in range(len(averageColors)):
 
-            color_options = np.unique(data["color"])
+            data = pd.read_csv("data/rgb.csv", skiprows=skipRows)
 
-            scaler = StandardScaler().fit(colors)
-            colors = scaler.transform(colors)
-
-            model = KNeighborsClassifier(n_neighbors=1).fit(colors, color_options)
-            new_color = model.predict([average_colors[i]])
-
-            if new_color == 'orange':
-                average_colors[i] = [255, 145, 10]
-                used_colors.append('orange')
-                df = pd.read_csv("data/sherbet.csv")
-                for j in range(len(df)):
-                    if df.iloc[j, 3] == 'orange':
-                        skip_rows.append(j + 1)
-
-            if new_color == 'sunshine':
-                average_colors[i] = [255, 189, 46]
-                used_colors.append('sunshine')
-                df = pd.read_csv("data/sherbet.csv")
-                for j in range(len(df)):
-                    if df.iloc[j, 3] == 'sunshine':
-                        skip_rows.append(j + 1)
-
-            if new_color == 'peach':
-                average_colors[i] = [255, 216, 186]
-                used_colors.append('peach')
-                df = pd.read_csv("data/sherbet.csv")
-                for j in range(len(df)):
-                    if df.iloc[j, 3] == 'peach':
-                        skip_rows.append(j + 1)
-
-            if new_color == 'flamingo':
-                average_colors[i] = [255, 169, 204]
-                used_colors.append('flamingo')
-                df = pd.read_csv("data/sherbet.csv")
-                for j in range(len(df)):
-                    if df.iloc[j, 3] == 'flamingo':
-                        skip_rows.append(j + 1)
-
-            if new_color == 'fuchsia':
-                average_colors[i] = [255, 92, 159]
-                used_colors.append('fuchsia')
-                df = pd.read_csv("data/sherbet.csv")
-                for j in range(len(df)):
-                    if df.iloc[j, 3] == 'fuchsia':
-                        skip_rows.append(j + 1)
-
-            if new_color == 'yellow':
-                average_colors[i] = [255, 234, 94]
-                used_colors.append('yellow')
-                df = pd.read_csv("data/sherbet.csv")
-                for j in range(len(df)):
-                    if df.iloc[j, 3] == 'yellow':
-                        skip_rows.append(j + 1)
-
-
-    def change_colors(self, average_colors):
-
-        used_colors = []
-        skip_rows = []
-
-        for i in range(len(average_colors)):
-
-            data = pd.read_csv("data/rgb.csv", skiprows=skip_rows)
-
-
+            # red, green, blue values are assigned to x
+            # corresponding palette colors are assigned to y
             x = data[["red", "green", "blue"]].values
             y = data["color"].values
 
-
+            # standardizes data
             scaler = StandardScaler().fit(x)
             x = scaler.transform(x)
 
-
             model = LogisticRegression().fit(x, y)
 
-            coef = model.coef_[0]
+            # assigns variables to the red-blue-green value of the average color at i
+            red = averageColors[i][0]
+            green = averageColors[i][1]
+            blue = averageColors[i][2]
 
-            ''' Make a new prediction '''
-            red = average_colors[i][0]
-            green = average_colors[i][1]
-            blue = average_colors[i][2]
+            # makes prediction
+            xPred = [[red, green, blue]]
+            xPred = scaler.transform(xPred)
 
-            x_pred = [[red, green, blue]]
-            x_pred = scaler.transform(x_pred)
+            # assigns newColor to prediction
+            newColor = model.predict(xPred)[0]
 
-            new_color = model.predict(x_pred)[0]
-
-            if new_color == 'raspberry':
-                average_colors[i] = [207, 48, 95]
-                used_colors.append('raspberry')
+            # If-statements change the rbg value of "averageColors" at index i
+            # add palette color to "usedColors"
+            # parse through the "rbg" csv to look for the palette color and add its rows to "skipRows"
+            if newColor == 'raspberry':
+                averageColors[i] = [207, 48, 95]
+                usedColors.append('raspberry')
                 df = pd.read_csv("data/rgb.csv")
                 for j in range(len(df)):
                     if df.iloc[j, 3] == 'raspberry':
-                        skip_rows.append(j + 1)
+                        skipRows.append(j + 1)
 
-            if new_color == 'cherry':
-                average_colors[i] = [250, 110, 110]
-                used_colors.append('cherry')
+            if newColor == 'cherry':
+                averageColors[i] = [250, 110, 110]
+                usedColors.append('cherry')
                 df = pd.read_csv("data/rgb.csv")
                 for j in range(len(df)):
                     if df.iloc[j, 3] == 'cherry':
-                        skip_rows.append(j + 1)
+                        skipRows.append(j + 1)
 
-            if new_color == 'watermelon':
-                average_colors[i] = [255, 133, 175]
-                used_colors.append('watermelon')
+            if newColor == 'watermelon':
+                averageColors[i] = [255, 133, 175]
+                usedColors.append('watermelon')
                 df = pd.read_csv("data/rgb.csv")
                 for j in range(len(df)):
                     if df.iloc[j, 3] == 'watermelon':
-                        skip_rows.append(j + 1)
+                        skipRows.append(j + 1)
 
-            if new_color == 'bubblegum':
-                average_colors[i] = [255, 194, 215]
-                used_colors.append('bubblegum')
+            if newColor == 'bubblegum':
+                averageColors[i] = [255, 194, 215]
+                usedColors.append('bubblegum')
                 df = pd.read_csv("data/rgb.csv")
                 for j in range(len(df)):
                     if df.iloc[j, 3] == 'bubblegum':
-                        skip_rows.append(j + 1)
+                        skipRows.append(j + 1)
 
-            if new_color == 'peach':
-                average_colors[i] = [255, 182, 173]
-                used_colors.append('peach')
+            if newColor == 'peach':
+                averageColors[i] = [255, 182, 173]
+                usedColors.append('peach')
                 df = pd.read_csv("data/rgb.csv")
                 for j in range(len(df)):
                     if df.iloc[j, 3] == 'peach':
-                        skip_rows.append(j + 1)
+                        skipRows.append(j + 1)
 
-            if new_color == 'tangerine':
-                average_colors[i] = [255, 175, 56]
-                used_colors.append('tangerine')
+            if newColor == 'tangerine':
+                averageColors[i] = [255, 175, 56]
+                usedColors.append('tangerine')
                 df = pd.read_csv("data/rgb.csv")
                 for j in range(len(df)):
                     if df.iloc[j, 3] == 'tangerine':
-                        skip_rows.append(j + 1)
+                        skipRows.append(j + 1)
 
-
-            if new_color == 'gold':
-                average_colors[i] = [255, 221, 84]
-                used_colors.append('gold')
+            if newColor == 'gold':
+                averageColors[i] = [255, 221, 84]
+                usedColors.append('gold')
                 df = pd.read_csv("data/rgb.csv")
                 for j in range(len(df)):
                     if df.iloc[j, 3] == 'gold':
-                        skip_rows.append(j+1)
+                        skipRows.append(j+1)
 
-
-            if new_color == 'banana':
-                average_colors[i] = [255, 244, 150]
-                used_colors.append('banana')
+            if newColor == 'banana':
+                averageColors[i] = [255, 244, 150]
+                usedColors.append('banana')
                 df = pd.read_csv("data/rgb.csv")
                 for j in range(len(df)):
                     if df.iloc[j, 3] == 'banana':
-                        skip_rows.append(j+1)
+                        skipRows.append(j+1)
 
-
-            if new_color == 'mint':
-                average_colors[i] = [219, 255, 148]
-                used_colors.append('mint')
+            if newColor == 'mint':
+                averageColors[i] = [219, 255, 148]
+                usedColors.append('mint')
                 df = pd.read_csv("data/rgb.csv")
                 for j in range(len(df)):
                     if df.iloc[j, 3] == 'mint':
-                        skip_rows.append(j+1)
+                        skipRows.append(j+1)
 
-
-            if new_color == 'lime':
-                average_colors[i] = [174, 237, 126]
-                used_colors.append('lime')
+            if newColor == 'lime':
+                averageColors[i] = [174, 237, 126]
+                usedColors.append('lime')
                 df = pd.read_csv("data/rgb.csv")
                 for j in range(len(df)):
                     if df.iloc[j, 3] == 'lime':
-                        skip_rows.append(j+1)
+                        skipRows.append(j+1)
 
-
-            if new_color == 'teal':
-                average_colors[i] = [102, 227, 148]
-                used_colors.append('teal')
+            if newColor == 'teal':
+                averageColors[i] = [102, 227, 148]
+                usedColors.append('teal')
                 df = pd.read_csv("data/rgb.csv")
                 for j in range(len(df)):
                     if df.iloc[j, 3] == 'teal':
-                        skip_rows.append(j+1)
+                        skipRows.append(j+1)
 
-
-            if new_color == 'forest':
-                average_colors[i] = [119, 207, 93]
-                used_colors.append('forest')
+            if newColor == 'forest':
+                averageColors[i] = [119, 207, 93]
+                usedColors.append('forest')
                 df = pd.read_csv("data/rgb.csv")
                 for j in range(len(df)):
                     if df.iloc[j, 3] == 'forest':
-                        skip_rows.append(j+1)
+                        skipRows.append(j+1)
 
-
-            if new_color == 'ice':
-                average_colors[i] = [191, 255, 250]
-                used_colors.append('ice')
+            if newColor == 'ice':
+                averageColors[i] = [191, 255, 250]
+                usedColors.append('ice')
                 df = pd.read_csv("data/rgb.csv")
                 for j in range(len(df)):
                     if df.iloc[j, 3] == 'ice':
-                        skip_rows.append(j+1)
+                        skipRows.append(j+1)
 
-
-            if new_color == 'winter':
-                average_colors[i] = [95, 230, 237]
-                used_colors.append('winter')
+            if newColor == 'winter':
+                averageColors[i] = [95, 230, 237]
+                usedColors.append('winter')
                 df = pd.read_csv("data/rgb.csv")
                 for j in range(len(df)):
                     if df.iloc[j, 3] == 'winter':
-                        skip_rows.append(j+1)
+                        skipRows.append(j+1)
 
-
-            if new_color == 'sky':
-                average_colors[i] = [52, 184, 237]
-                used_colors.append('sky')
+            if newColor == 'sky':
+                averageColors[i] = [52, 184, 237]
+                usedColors.append('sky')
                 df = pd.read_csv("data/rgb.csv")
                 for j in range(len(df)):
                     if df.iloc[j, 3] == 'sky':
-                        skip_rows.append(j+1)
+                        skipRows.append(j+1)
 
-
-            if new_color == 'royal':
-                average_colors[i] = [92, 137, 219]
-                used_colors.append('royal')
+            if newColor == 'royal':
+                averageColors[i] = [92, 137, 219]
+                usedColors.append('royal')
                 df = pd.read_csv("data/rgb.csv")
                 for j in range(len(df)):
                     if df.iloc[j, 3] == 'royal':
-                        skip_rows.append(j+1)
+                        skipRows.append(j+1)
 
-
-            if new_color == 'lilac':
-                average_colors[i] = [207, 205, 250]
-                used_colors.append('lilac')
+            if newColor == 'lilac':
+                averageColors[i] = [207, 205, 250]
+                usedColors.append('lilac')
                 df = pd.read_csv("data/rgb.csv")
                 for j in range(len(df)):
                     if df.iloc[j, 3] == 'lilac':
-                        skip_rows.append(j+1)
+                        skipRows.append(j+1)
 
-
-            if new_color == 'violet':
-                average_colors[i] = [212, 181, 245]
-                used_colors.append('violet')
+            if newColor == 'violet':
+                averageColors[i] = [212, 181, 245]
+                usedColors.append('violet')
                 df = pd.read_csv("data/rgb.csv")
                 for j in range(len(df)):
                     if df.iloc[j, 3] == 'violet':
-                        skip_rows.append(j+1)
+                        skipRows.append(j+1)
 
-
-            if new_color == 'berry':
-                average_colors[i] = [154, 120, 173]
-                used_colors.append('berry')
+            if newColor == 'berry':
+                averageColors[i] = [154, 120, 173]
+                usedColors.append('berry')
                 df = pd.read_csv("data/rgb.csv")
                 for j in range(len(df)):
                     if df.iloc[j, 3] == 'berry':
-                        skip_rows.append(j+1)
+                        skipRows.append(j+1)
 
 
-
-
-
-
-
-
-
-    def compress_image(self, img, num):
+    def compressImage(self, img, num):
 
         """
-        Compresses the image using KMeans clustering to contain
-        only a set number of colors
-        :param img: A 2D List of [R, G, B] values representing the image
-        :return: A 2D List of [R, G, B] values representing the compressed image
+        Uses KMeans clustering to group the rgb values of the 2D array (parameter) into average colors.
+        Creates a list of average colors (centroids).
+        Uses one of seven functions to change the centroids into different colors.
+        takes in a number input by the user to determine which function will edit the centroids.
+        Returns a 2D array representing the edited image.
         """
 
+        # assigns k (the number of colors in the final image) depending on which theme the user chose
         if num == 1 or num == 6:
             k = 5
         if num == 2 or num == 3 or num == 4:
@@ -570,44 +516,64 @@ class ImageCompressor:
         if num == 5 or num == 7:
             k = 6
 
-        image1D = self.convert_to_1D(img)
+        # Converts 2D to 1D
+        image1D = self.convertTo1D(img)
 
+        # uses k means to create the centroids
         km = KMeans(n_clusters=k).fit(image1D)
         centroids = km.cluster_centers_
 
+        # Calls the function that corresponds to the user's input
         if num == 1:
-            self.change_colors(centroids)
+            self.changeColors(centroids)
         if num == 2:
-            self.change_colors_blue(centroids)
+            self.changeColorsBlue(centroids)
         if num == 3:
-            self.change_colors_red(centroids)
+            self.changeColorsRed(centroids)
         if num == 4:
-            self.change_colors_green(centroids)
+            self.changeColorsGreen(centroids)
         if num == 5:
-            self.change_colors_christmas(centroids)
+            self.changeColorsChristmas(centroids)
         if num == 6:
-            self.change_colors_miami_vice(centroids)
+            self.changeColorsMiamiVice(centroids)
         if num == 7:
-            self.change_colors_sherbert(centroids)
+            self.changeColorsSherbet(centroids)
 
         labels = km.labels_
 
+        # assigns each pixel to its edited, average color
         for i in range(len(image1D)):
             image1D[i] = centroids[labels[i]]
 
-        finalImage  = self.convert_to_2D(image1D)
-
+        # Coverts back to 2D and returns
+        finalImage  = self.convertTo2D(image1D)
         return finalImage
 
 
 
-
 if __name__ == '__main__':
+    """
+    UI that allows user to choose a jpeg file from the computer's desktop and choose a color theme.
+    Calls functions to create the new image and plot a side by side comparison of the edited and unedited images.
+    """
+
+    # Create image compressor object
     imageComp = ImageCompressor()
 
+    # Prompt the user for input
     print("Enter the name of a jpeg file on this computer's desktop")
     fileName = input('example: for photo.jpeg, enter "photo"\n')
 
+    # found a way to check if the file exists (user can't break the program)
+    # https://www.pythontutorial.net/python-basics/python-check-if-file-exists/
+    file_exists = os.path.exists("/Users/emmaborders/Desktop/" + fileName + ".jpeg")
+
+    # Continues prompting for a file name until input is valid
+    while file_exists == False:
+        fileName = input('No such file exists, enter a different file name: ')
+        file_exists = os.path.exists("/Users/emmaborders/Desktop/" + fileName + ".jpeg")
+
+    # gives theme options
     print("There are several theme options for editing your photo:")
     print("1 = basic pop art colors")
     print("2 = blue")
@@ -617,10 +583,28 @@ if __name__ == '__main__':
     print("6 = miami vice themed colors")
     print("7 = sherbet themed colors")
 
-    colorNumber = int(input("Enter the number corresponding to the theme of your choosing: "))
+    # Prompts the user to pick a theme
+    number = input("Enter the number corresponding to the theme of your choosing: ")
 
-    image = imageComp.load_image("/Users/emmaborders/Desktop/" + fileName + ".jpeg")
+    # Ensures that the user can't break the code
+    while number.isdigit() == False:
+        number = input("That is not an integer, enter a number: ")
 
-    newImage = imageComp.compress_image(image, colorNumber)
-    imageComp.plot_image_comparisons( imageComp.load_image("/Users/emmaborders/Desktop/" + fileName + ".jpeg"), newImage)
+    colorNumber = int(number)
+
+    while colorNumber not in {1, 2, 3, 4, 5, 6, 7}:
+        number = input("That does not correspond to a theme, enter a number 1 through 7: ")
+
+        while number.isdigit() == False:
+            number = input("That is not an integer, enter a number: ")
+
+        colorNumber = int(number)
+
+    # Loads image by making a call to the "loadImage" function
+    image = imageComp.loadImage("/Users/emmaborders/Desktop/" + fileName + ".jpeg")
+
+    # Calls the "compressImage" function to create the edited image
+    newImage = imageComp.compressImage(image, colorNumber)
+    # plots the comparison figure
+    imageComp.plotImageComparisons(imageComp.loadImage("/Users/emmaborders/Desktop/" + fileName + ".jpeg"), newImage)
 
