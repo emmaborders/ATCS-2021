@@ -554,7 +554,7 @@ class ImageCompressor:
 
 
 
-    def compress_image(self, img):
+    def compress_image(self, img, num):
 
         """
         Compresses the image using KMeans clustering to contain
@@ -563,35 +563,34 @@ class ImageCompressor:
         :return: A 2D List of [R, G, B] values representing the compressed image
         """
 
-        image1D = self.convert_to_1D(img)
+        if num == 1 or num == 6:
+            k = 5
+        if num == 2 or num == 3 or num == 4:
+            k = 15
+        if num == 5 or num == 7:
+            k = 6
 
-        k = 8
+        image1D = self.convert_to_1D(img)
 
         km = KMeans(n_clusters=k).fit(image1D)
         centroids = km.cluster_centers_
 
-        x = 1
-
-        if x == 1:
+        if num == 1:
             self.change_colors(centroids)
-        if x == 2:
+        if num == 2:
             self.change_colors_blue(centroids)
-        if x == 3:
+        if num == 3:
             self.change_colors_red(centroids)
-        if x == 4:
+        if num == 4:
             self.change_colors_green(centroids)
-        if x == 5:
+        if num == 5:
             self.change_colors_christmas(centroids)
-        if x == 6:
+        if num == 6:
             self.change_colors_miami_vice(centroids)
-        if x == 7:
+        if num == 7:
             self.change_colors_sherbert(centroids)
 
-
-
-
         labels = km.labels_
-        #print(labels)
 
         for i in range(len(image1D)):
             image1D[i] = centroids[labels[i]]
@@ -605,8 +604,23 @@ class ImageCompressor:
 
 if __name__ == '__main__':
     imageComp = ImageCompressor()
-    image = imageComp.load_image("/Users/emmaborders/Desktop/taylor.jpg")
 
-    newImage = imageComp.compress_image(image)
-    imageComp.plot_image_comparisons( imageComp.load_image("/Users/emmaborders/Desktop/taylor.jpg"), newImage)
+    print("Enter the name of a jpeg file on this computer's desktop")
+    fileName = input('example: for photo.jpeg, enter "photo"\n')
+
+    print("There are several theme options for editing your photo:")
+    print("1 = basic pop art colors")
+    print("2 = blue")
+    print("3 = red")
+    print("4 = green")
+    print("5 = christmas themed colors")
+    print("6 = miami vice themed colors")
+    print("7 = sherbet themed colors")
+
+    colorNumber = int(input("Enter the number corresponding to the theme of your choosing: "))
+
+    image = imageComp.load_image("/Users/emmaborders/Desktop/" + fileName + ".jpeg")
+
+    newImage = imageComp.compress_image(image, colorNumber)
+    imageComp.plot_image_comparisons( imageComp.load_image("/Users/emmaborders/Desktop/" + fileName + ".jpeg"), newImage)
 
